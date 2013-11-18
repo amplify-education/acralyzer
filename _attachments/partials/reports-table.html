@@ -18,14 +18,14 @@
                 <i class="icon-trash" title="Delete permanently"></i>
             </a>
         </div>
-        <span title="User" class="div-table-cell label label-inverse"><img class="avatar" monsterid="{{report.value.installation_id}}" ng-show="report.value.installation_id"/></span>
+        <span title="User" class="div-table-cell label label-inverse"><img class="avatar" monsterid="{{report.doc.INSTALLATION_ID}}" ng-show="report.doc.INSTALLATION_ID"/></span>
         <span title="Crash date" class="div-table-cell label label-info">{{report.displayDate}}</span>
-        <span title="Application version name" class="div-table-cell label label-warning">{{report.value.application_version_name}}</span>
-        <span title="Android verion" class="div-table-cell label label-success">{{report.value.android_version}}</span>
-        <span title="Device" class="div-table-cell label">{{report.value.device}}</span>
+        <span title="Application version name" class="div-table-cell label label-warning">{{report.doc.APP_VERSION_NAME}}</span>
+        <span title="Android verion" class="div-table-cell label label-success">{{report.doc.ANDROID_VERSION}}</span>
+        <span title="Device" class="div-table-cell label">{{getDevice(report.doc)}}</span>
         <div class="div-table-cell exceptions">
-            <span title="Exception" class="label label-important">{{report.value.signature.full}}</span>
-            <span title="Root exception" class="label label-inverse" ng-show="report.value.signature.rootCause">Caused by: {{report.value.signature.rootCause}}</span>
+            <span title="Exception" class="label label-important">{{report.doc.SIGNATURE.full}}</span>
+            <span title="Root exception" class="label label-inverse" ng-show="report.doc.SIGNATURE.rootCause">Caused by: {{report.doc.SIGNATURE.rootCause}}</span>
         </div>
     </div>
 </div>

@@ -141,22 +141,22 @@
             };
 
             if(($scope.filterName === $scope.noFilter || $scope.filterValue === $scope.noFilterValue) && !$scope.bug && !$scope.selectedUser) {
-                ReportsStore.reportsList($scope.startKey, $scope.paginator.pageSize, $scope.fullSearch, successHandler, errorHandler);
+                ReportsStore.reportsList($scope.startKey, $scope.paginator.pageSize, true, successHandler, errorHandler);
             } else if($scope.filterName !== $scope.noFilter && $scope.filterValue !== $scope.noFilterValue){
-                ReportsStore.filteredReportsList($scope.filterName.value, $scope.filterValue.value,$scope.startKey, $scope.paginator.pageSize, $scope.fullSearch, successHandler, errorHandler);
+                ReportsStore.filteredReportsList($scope.filterName.value, $scope.filterValue.value,$scope.startKey, $scope.paginator.pageSize, true, successHandler, errorHandler);
             } else if($scope.bug) {
                 if($scope.selectedUser) {
                     // Filter by bug AND user
                     var filterKey = [$scope.bug.key];
                     filterKey.push($scope.selectedUser.installationId);
-                    ReportsStore.filteredReportsList("bug-by-installation-id", filterKey, $scope.startKey, $scope.paginator.pageSize, $scope.fullSearch, successHandler, errorHandler);
+                    ReportsStore.filteredReportsList("bug-by-installation-id", filterKey, $scope.startKey, $scope.paginator.pageSize, true, successHandler, errorHandler);
                 } else {
                     // Filter by bug only
-                    ReportsStore.filteredReportsList("bug", $scope.bug.key, $scope.startKey, $scope.paginator.pageSize, $scope.fullSearch, successHandler, errorHandler);
+                    ReportsStore.filteredReportsList("bug-by-installation-id", $scope.bug.key, $scope.startKey, $scope.paginator.pageSize, true, successHandler, errorHandler, 1);
                 }
             } else if($scope.selectedUser) {
                 // Filter by user only
-                ReportsStore.filteredReportsList("installation-id", $scope.selectedUser.installationId, $scope.startKey, $scope.paginator.pageSize, $scope.fullSearch, successHandler, errorHandler);
+                ReportsStore.filteredReportsList("installation-id", $scope.selectedUser.installationId, $scope.startKey, $scope.paginator.pageSize, true, successHandler, errorHandler);
             }
         };
 

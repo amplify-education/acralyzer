@@ -58,6 +58,29 @@
             });
         };
 
+        $scope.getDevice = function(doc) {
+            if(doc.BUILD) {
+                if(doc.BUILD.MANUFACTURER) {
+                    return doc.BUILD.MANUFACTURER + " " + doc.BUILD.BRAND + " " + doc.BUILD.MODEL;
+                } else {
+                    return doc.BUILD.BRAND + " " + doc.BUILD.MODEL;
+                }
+            } else {
+                var value = "";
+                if(doc.BRAND) {
+                    value = doc.BRAND;
+                }
+                if(doc.PRODUCT) {
+                    value += " " + doc.PRODUCT;
+                }
+                if(doc.PHONE_MODEL) {
+                    value += " " + doc.MODEL;
+                }
+
+                return value;
+            }
+        };
+    
         $scope.loadReport = function(report) {
             $scope.selectedReport = ReportsStore.reportDetails(report.id, function(data) {
                 data.readableUptime = moment.duration(data.uptime, 'seconds').humanize();
@@ -374,11 +397,11 @@
     /* Pie charts */
     function PieChartsCtrl($scope, ReportsStore, $user) {
         $scope.fieldNames = [
-            {name: "android-version", label: "Android version"},
-            {name: "android-sdk-version", label: "Android SDK version"},
-            {name: "app-version-name", label: "Application version name"},
-            {name: "app-version-code", label: "Application version code"},
-            {name: "device", label: "Device"}
+            {name: "recent-items-by-androidver", label: "Android version"},
+            {name: "reports-per-android-sdk-version", label: "Android SDK version"},
+            {name: "recent-items-by-appver", label: "Application version name"},
+            {name: "recent-items-by-appvercode", label: "Application version code"},
+            {name: "reports-per-device", label: "Device"}
         ];
         $scope.fieldName = $scope.fieldNames[0];
 

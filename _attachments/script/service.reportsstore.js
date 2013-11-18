@@ -88,7 +88,7 @@
 
         // 10 latest reports - Key: date/time Value: report digest
         ReportsStore.recentReports = function(cb, errorHandler) {
-            return ReportsStore.views.get({view: 'recent-items', limit: 10, descending: true}, cb, errorHandler);
+            return ReportsStore.views.get({view: 'recent-items', limit: 10, descending: true, include_docs: true}, cb, errorHandler);
         };
 
         // Key: report ID Value: report digest
@@ -138,10 +138,8 @@
                 }
 
                 for(var row = 0; row < data.rows.length; row++) {
-                    if(filterName === "bug") {
-                        data.rows[row].displayDate = moment(data.rows[row].key[3]).fromNow();
-                    } else if(filterName === "bug-by-installation-id") {
-                        data.rows[row].displayDate = moment(data.rows[row].key[4]).fromNow();
+                    if(filterName === "bug-by-installation-id") {
+                        data.rows[row].displayDate = moment(data.rows[row].key[2]).fromNow();
                     } else {
                         data.rows[row].displayDate = moment(data.rows[row].key[1]).fromNow();
                     }
@@ -159,19 +157,19 @@
         };
 
         ReportsStore.reportsPerFieldName = function(fieldName, cb, errorHandler) {
-            return ReportsStore.views.get({view: 'reports-per-' + fieldName, group_level: 1}, cb, errorHandler);
+            return ReportsStore.views.get({view: fieldName, group_level: 1}, cb, errorHandler);
         };
 
         ReportsStore.appVersionsList = function(cb) {
-            return ReportsStore.views.get({view: 'recent-items-by-appver', group_level: 1}, cb);
+            return ReportsStore.views.get({view: 'recent-items-by-appver', reduce: true, group_level: 1, include_docs: false}, cb);
         };
 
         ReportsStore.appVersionCodesList = function(cb) {
-            return ReportsStore.views.get({view: 'recent-items-by-appvercode', group_level: 1}, cb);
+            return ReportsStore.views.get({view: 'recent-items-by-appvercode', reduce: true, group_level: 1, include_docs: false}, cb);
         };
 
         ReportsStore.androidVersionsList = function(cb) {
-            return ReportsStore.views.get({view: 'recent-items-by-androidver', group_level: 1}, cb);
+            return ReportsStore.views.get({view: 'recent-items-by-androidver', reduce: true, group_level: 1, include_docs: false}, cb);
         };
 
         ReportsStore.bugListWithLimit = function(limit, bugId) {
