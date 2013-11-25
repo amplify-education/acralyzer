@@ -26,7 +26,7 @@
      * @singleton
      * @static
      */
-    acralyzer.factory('ReportsStore', ['$rootScope', '$http', '$resource', function($rootScope, $http, $resource) {
+    acralyzer.factory('ReportsStore', ['$rootScope', '$http', '$resource', '$location', function($rootScope, $http, $resource, $location) {
         // ReportsStore service instance
         var ReportsStore = {
             lastseq : -1,
@@ -45,9 +45,17 @@
         * @param {function} cb Callback to be executed after database changed.
         */
         ReportsStore.setApp = function (newAppName, cb) {
+            var addLogcatLink = function(data, headersGetter) {
+                var report = JSON.parse(data);
+                if (report._attachments['logcat.txt'].stub) {
+                    var link = $location.protocol() + '://' + $location.host() + ':' + $location.port() + '/' + ReportsStore.dbName + '/' + report._id + '/logcat.txt';
+                    report._attachments['logcat.txt'].link = link;
+                }
+                return report;
+            };
             ReportsStore.dbName = acralyzerConfig.appDBPrefix + newAppName;
             ReportsStore.views = $resource('/' + ReportsStore.dbName + '/_design/acra-storage/_view/:view');
-            ReportsStore.details = $resource('/' + ReportsStore.dbName + '/:reportid');
+            ReportsStore.details = $resource('/' + ReportsStore.dbName + '/:reportid', null, {'get': {method:'GET', transformResponse: addLogcatLink}});
             ReportsStore.bug = $resource('/' + ReportsStore.dbName + '/:bugid', { bugid: '@_id' }, { save: {method: 'PUT'}});
             ReportsStore.dbstate = $resource('/' + ReportsStore.dbName + '/');
             ReportsStore.changes = $resource('/' + ReportsStore.dbName + '/_changes');
