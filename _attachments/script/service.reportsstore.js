@@ -125,16 +125,8 @@
                 reduce: false
             };
 
-            if(filterName.indexOf("bug") === 0) {
-                // Bugs have composite keys, already an array.
-                viewParams.endkey = JSON.stringify(filterValue);
-                var startKeyValue = filterValue.slice(0);
-                startKeyValue.push({});
-                viewParams.startkey = JSON.stringify(startKeyValue);
-            } else {
-                viewParams.endkey = JSON.stringify([filterValue]);
-                viewParams.startkey = JSON.stringify([filterValue,{}]);
-            }
+            viewParams.endkey = JSON.stringify([].concat(filterValue));
+            viewParams.startkey = JSON.stringify([].concat(filterValue,{}));
 
             if(pageStartKey !== null) {
                 viewParams.startkey = JSON.stringify(pageStartKey);
@@ -182,97 +174,95 @@
             return ReportsStore.views.get({view: 'recent-items-by-androidver', group_level: 1}, cb);
         };
 
-        // BUGS MANAGEMENT
-        var computeBugId = function(bug) {
-            if (bug.id) {
-                return bug.id;
-            } else {
-                return hex_md5(bug.key[0] + "|" + bug.key[1] + "|" + bug.key[2]);
-            }
+        ReportsStore.bugListWithLimit = function(limit, bugId) {
+
+            return function(cb, errorHandler){
+                var viewParams = {
+                    view: 'bugs',
+                    descending: true,
+                    group: true
+                };
+
+                if (limit > 0) { viewParams.limit = limit; }
+                if (bugId) { viewParams.key = bugId; }
+
+                var bugEqualityTest = function(bug2) {
+                    if(
+                        this.value.key !== bug2.value.key ||
+                        this.value.latest !== bug2.value.latest ||
+                        this.value.count !== bug2.value.count ||
+                        this.value.solved !== bug2.value.solved ||
+                        this.value.description !== bug2.value.description) {
+                        return false;
+                    }
+                    return true;
+                };
+
+                var bugUpdate = function(bug2) {
+                    if(this.value.latest !== bug2.value.latest) {
+                        this.value.latest = bug2.value.latest;
+                    }
+                    if(this.value.count !== bug2.value.count) {
+                        this.value.count = bug2.value.count;
+                    }
+                    if(this.value.solved !== bug2.value.solved) {
+                        this.value.solved = bug2.value.solved;
+                    }
+                    if(this.value.description !== bug2.value.description) {
+                        this.value.description = bug2.value.description;
+                    }
+                };
+
+                var toggleSolved = function() {
+                    var bug = this;
+                    this.solvedPending = true;
+                    ReportsStore.toggleSolvedBug(bug, function(data){
+                        bug.solvedPending = false;
+                    });
+                };
+
+                var additionalCallback = function(data) {
+                    // The bug view does not return individual documents. Unless data has been specifically updated about
+                    // one bug, there is no bug document in a database. We add here the computed id of each 'virtual' bug.
+                    for (var i = 0; i < data.rows.length; i++) {
+                        data.rows[i].id = ""+data.rows[i].key;
+                        data.rows[i].equals = bugEqualityTest;
+                        data.rows[i].updateWithBug = bugUpdate;
+                        data.rows[i].toggleSolved = toggleSolved;
+                        data.rows[i].descriptionHtml = converter.makeHtml(data.rows[i].value.description);
+                    }
+                    cb(data);
+                };
+
+                return ReportsStore.views.get(viewParams, additionalCallback, errorHandler);
+            };
         };
 
-        ReportsStore.bugsList = function(cb, errorHandler) {
-            var viewParams = {
-                view: 'bugs',
-                descending: true,
-                group: true
-            };
+        ReportsStore.recentBugsList = ReportsStore.bugListWithLimit(0);
 
-            var bugEqualityTest = function(bug2) {
-                if(this.value.latest !== bug2.value.latest ||
-                    this.value.count !== bug2.value.count ||
-                    this.value.solved !== bug2.value.solved ||
-                    this.value.description !== bug2.value.description) {
-                    return false;
-                }
-                return true;
-            };
-
-            var bugUpdate = function(bug2) {
-                if(this.value.latest !== bug2.value.latest) {
-                    this.value.latest = bug2.value.latest;
-                }
-                if(this.value.count !== bug2.value.count) {
-                    this.value.count = bug2.value.count;
-                }
-                if(this.value.solved !== bug2.value.solved) {
-                    this.value.solved = bug2.value.solved;
-                }
-                if(this.value.description !== bug2.value.description) {
-                    this.value.description = bug2.value.description;
-                }
-            };
-
-            var toggleSolved = function() {
-                var bug = this;
-                this.solvedPending = true;
-                ReportsStore.toggleSolvedBug(bug, function(data){
-                    bug.solvedPending = false;
-                });
-            };
-
-            var additionalCallback = function(data) {
-                // The bug view does not return individual documents. Unless data has been specifically updated about
-                // one bug, there is no bug document in a database. We add here the computed id of each 'virtual' bug.
-                for (var i = 0; i < data.rows.length; i++) {
-                    data.rows[i].id = computeBugId(data.rows[i]);
-                    data.rows[i].equals = bugEqualityTest;
-                    data.rows[i].updateWithBug = bugUpdate;
-                    data.rows[i].toggleSolved = toggleSolved;
-                    data.rows[i].descriptionHtml = converter.makeHtml(data.rows[i].value.description);
-                }
-                cb(data);
-            };
-
-            return ReportsStore.views.get(viewParams, additionalCallback, errorHandler);
-        };
+        ReportsStore.bugsList = ReportsStore.bugListWithLimit(0);
 
         ReportsStore.toggleSolvedBug = function(bug, callback) {
+            var updateBrowserBug = function(data) {
+                bug.value.solved = curBug.solved;
+                callback(data);
+            };
             var curBug = ReportsStore.bug.get({ bugid: bug.id}, function() {
                 // Success callback
                 curBug.solved = ! curBug.solved;
-                var state = curBug.solved;
-                curBug.$save(function(data) {
-                    bug.value.solved = state;
-                    console.log("bug is now:");
-                    console.log(bug);
-                    callback(data);
-                });
+                ReportsStore.bug.save(curBug, updateBrowserBug);
             }, function() {
                 // Fail callback
                 curBug = new ReportsStore.bug(
                     {
                         _id: bug.id,
-                        APP_VERSION_CODE: bug.key[0],
-                        digest: bug.key[1],
-                        rootCause: bug.key[2],
+                        SIGNATURE: {
+                            hash: bug.key
+                        },
                         solved: true,
                         type: "solved_signature"
                     });
-                curBug.$save(function(data) {
-                    bug.value.solved = curBug.solved;
-                    callback(data);
-                });
+                ReportsStore.bug.save(curBug, updateBrowserBug);
             });
         };
 
@@ -285,9 +275,9 @@
                 curBug = new ReportsStore.bug(
                     {
                         _id: bug.id,
-                        APP_VERSION_CODE: bug.key[0],
-                        digest: bug.key[1],
-                        rootCause: bug.key[2],
+                        signature: {
+                            hash: bug.value.hash
+                        },
                         solved: bug.value.solved,
                         type: "solved_signature",
                         description: bug.value.description
@@ -308,17 +298,11 @@
          * @param cb
          */
         ReportsStore.getBugForId = function(bugId, cb) {
-            var bug = {};
-            ReportsStore.bugsList(function(data) {
-                console.log("looking for bug with id " + bugId);
-                for (var i = 0; i < data.rows.length; i++) {
-                    if (data.rows[i].id === bugId) {
-                        bug = data.rows[i];
-                        console.log("Bug found:");
-                        console.log(bug);
-                        break;
-                    }
-                }
+            var bug = null;
+            console.log("looking for bug with id " + bugId);
+            ReportsStore.bugListWithLimit(1, bugId)(function(data) {
+                bug = data.rows[0];
+                if (bug === null) { console.log("Error, unable to find bug with id " + bugId); }
                 cb(bug);
             });
             return bug;
@@ -483,16 +467,16 @@
             var viewParams = {
                 view: 'users-per-bug',
                 reduce: true,
-                group_level: 4
+                group_level: 2
             };
 
-            viewParams.startkey = JSON.stringify([bug.key[0], bug.key[1], bug.key[2]]);
-            viewParams.endkey = JSON.stringify([bug.key[0], bug.key[1], bug.key[2], {}]);
+            viewParams.startkey = JSON.stringify([bug.key]);
+            viewParams.endkey = JSON.stringify([bug.key, {}]);
             var result = [];
             ReportsStore.views.get(viewParams,function(data) {
                 for(var row = 0; row < data.rows.length; row++) {
                     var user = {
-                        installationId: data.rows[row].key[3],
+                        installationId: data.rows[row].key[1],
                         reportsCount: data.rows[row].value
                     };
                     result.push(user);

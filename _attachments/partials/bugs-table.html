@@ -16,10 +16,10 @@
             </span>
         </div>
         <div class="div-table-cell">
-            <i class="icon-gift" ng-click="$parent.orderField = 'key[0]'"></i>
+            <i class="icon-gift" ng-click="$parent.orderField = 'value.appVersion'"></i>
             <span ng-click="$parent.orderDescending = !$parent.orderDescending">
-                <i class="icon-chevron-down" ng-show="$parent.orderField === 'key[0]' && $parent.orderDescending"ng-click=""></i>
-                <i class="icon-chevron-up" ng-show="$parent.orderField === 'key[0]' && !$parent.orderDescending"></i>
+                <i class="icon-chevron-down" ng-show="$parent.orderField === 'value.appVersion' && $parent.orderDescending"ng-click=""></i>
+                <i class="icon-chevron-up" ng-show="$parent.orderField === 'value.appVersion' && !$parent.orderDescending"></i>
             </span>
         </div>
         <div class="div-table-cell exceptions"><i class="icon-fire"></i></div>
@@ -40,10 +40,10 @@
         </div>
         <div title="Number of reports" class="div-table-cell label">{{bug.value.count}}</div>
         <div title="Latest report" class="div-table-cell label label-info">{{bug.latest}}</div>
-        <div title="Application version code" class="div-table-cell label label-warning">{{bug.key[0]}}</div>
+        <div title="Application version code" class="div-table-cell label label-warning">{{bug.value.appVersion}}</div>
         <div class="div-table-cell exceptions">
-            <span title="Exception" class="label label-important">{{bug.key[1]}}</span><br/>
-            <span title="Root exception" class="label label-inverse" ng-show="bug.key[2]">Caused by: {{bug.key[2]}}</span>
+            <span title="Exception" class="label label-important">{{bug.value.exception}}</span><br/>
+            <span title="Root exception" class="label label-inverse" ng-show="bug.value.rootCause">Caused by: {{bug.value.rootCause}}</span>
         </div>
     </div>
 </div>

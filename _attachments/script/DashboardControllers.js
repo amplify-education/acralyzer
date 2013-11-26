@@ -121,7 +121,8 @@
         };
 
         $scope.getData = function() {
-            ReportsStore.bugsList(function(data) {
+            ReportsStore.recentBugsList(
+                function(data) {
                     console.log("Refresh data for latest bugs");
                     mergeBugsLists($scope.bugs, data.rows);
                     $scope.totalBugs = data.total_rows;

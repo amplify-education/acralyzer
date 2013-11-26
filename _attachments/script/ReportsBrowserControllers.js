@@ -96,6 +96,29 @@
             }
         });
 
+        $scope.getDevice = function(doc) {
+            if(doc.BUILD) {
+                if(doc.BUILD.MANUFACTURER) {
+                    return doc.BUILD.MANUFACTURER + " " + doc.BUILD.BRAND + " " + doc.BUILD.MODEL;
+                } else {
+                    return doc.BUILD.BRAND + " " + doc.BUILD.MODEL;
+                }
+            } else {
+                var value = "";
+                if(doc.BRAND) {
+                    value = doc.BRAND;
+                }
+                if(doc.PRODUCT) {
+                    value += " " + doc.PRODUCT;
+                }
+                if(doc.PHONE_MODEL) {
+                    value += " " + doc.MODEL;
+                }
+
+                return value;
+            }
+        };
+
         $scope.getData = function() {
             $scope.loading = true;
             var successHandler = function(data) {
@@ -124,7 +147,7 @@
             } else if($scope.bug) {
                 if($scope.selectedUser) {
                     // Filter by bug AND user
-                    var filterKey = $scope.bug.key.slice(0);
+                    var filterKey = [$scope.bug.key];
                     filterKey.push($scope.selectedUser.installationId);
                     ReportsStore.filteredReportsList("bug-by-installation-id", filterKey, $scope.startKey, $scope.paginator.pageSize, $scope.fullSearch, successHandler, errorHandler);
                 } else {
