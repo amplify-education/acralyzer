@@ -82,13 +82,13 @@
         * @return Key: date/time, Value: quantity
         */
         ReportsStore.reportsPerDay = function(grouplvl, cb, errorHandler) {
-            return ReportsStore.views.get({view: 'reports-per-day', group_level: grouplvl}, cb, errorHandler);
+            return ReportsStore.views.get({view: 'reports-per-day', group_level: grouplvl, stale: 'update_after'}, cb, errorHandler);
         };
 
 
         // 10 latest reports - Key: date/time Value: report digest
         ReportsStore.recentReports = function(cb, errorHandler) {
-            return ReportsStore.views.get({view: 'recent-items', limit: 10, descending: true, include_docs: true}, cb, errorHandler);
+            return ReportsStore.views.get({view: 'recent-items', limit: 10, descending: true, stale: 'update_after', include_docs: true}, cb, errorHandler);
         };
 
         // Key: report ID Value: report digest
@@ -97,6 +97,7 @@
                 view: 'recent-items',
                 descending: true,
                 limit: reportsCount + 1,
+                stale: 'update_after',
                 include_docs: includeDocs
             };
             if(startKey !== null) {
@@ -121,6 +122,7 @@
                 view: 'recent-items-by-' + filterName,
                 descending: true,
                 limit: reportsCount + 1,
+                stale: 'update_after',
                 include_docs: includeDocs,
                 reduce: false
             };
@@ -157,19 +159,19 @@
         };
 
         ReportsStore.reportsPerFieldName = function(fieldName, cb, errorHandler) {
-            return ReportsStore.views.get({view: fieldName, group_level: 1}, cb, errorHandler);
+            return ReportsStore.views.get({view: fieldName, group_level: 1, stale: 'update_after'}, cb, errorHandler);
         };
 
         ReportsStore.appVersionsList = function(cb) {
-            return ReportsStore.views.get({view: 'recent-items-by-appver', reduce: true, group_level: 1, include_docs: false}, cb);
+            return ReportsStore.views.get({view: 'recent-items-by-appver', reduce: true, group_level: 1, include_docs: false, stale: 'update_after'}, cb);
         };
 
         ReportsStore.appVersionCodesList = function(cb) {
-            return ReportsStore.views.get({view: 'recent-items-by-appvercode', reduce: true, group_level: 1, include_docs: false}, cb);
+            return ReportsStore.views.get({view: 'recent-items-by-appvercode', reduce: true, group_level: 1, include_docs: false, stale: 'update_after'}, cb);
         };
 
         ReportsStore.androidVersionsList = function(cb) {
-            return ReportsStore.views.get({view: 'recent-items-by-androidver', reduce: true, group_level: 1, include_docs: false}, cb);
+            return ReportsStore.views.get({view: 'recent-items-by-androidver', reduce: true, group_level: 1, include_docs: false, stale: 'update_after'}, cb);
         };
 
         ReportsStore.bugListWithLimit = function(limit, bugId) {
@@ -178,7 +180,8 @@
                 var viewParams = {
                     view: 'bugs',
                     descending: true,
-                    group: true
+                    group: true,
+                    stale: 'update_after'
                 };
 
                 if (limit > 0) { viewParams.limit = limit; }
@@ -465,7 +468,8 @@
             var viewParams = {
                 view: 'users-per-bug',
                 reduce: true,
-                group_level: 2
+                group_level: 2,
+                stale: 'update_after'
             };
 
             viewParams.startkey = JSON.stringify([bug.key]);

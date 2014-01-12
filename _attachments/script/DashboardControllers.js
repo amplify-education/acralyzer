@@ -80,7 +80,7 @@
                 return value;
             }
         };
-    
+
         $scope.loadReport = function(report) {
             $scope.selectedReport = ReportsStore.reportDetails(report.id, function(data) {
                 data.readableUptime = moment.duration(data.uptime, 'seconds').humanize();
